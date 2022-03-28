@@ -2,8 +2,6 @@ from Tile import Tile
 from Piece import Piece
 
 class Board():
-    CHARACTERS = "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
     def __init__(self) -> None:
         self.board_row_tiles: list[list[Tile]] = self.generate_board_rows()
         self.board_tiles: list[Tile] = self.rows_to_board()
@@ -228,7 +226,9 @@ class Board():
         assert all(tile.get_distance_from_bottom_vertex() > 0 for tile in self.board_tiles[:-1])   # Check the rest of the tiles
 
     """Prints the board in the command line"""
-    def print_board(self, numbered_tiles=None) -> None:
+    def print_board(self, numbered_tiles=None, characters="123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ") -> None:
+        numbered_tiles = [] if numbered_tiles is None else list(numbered_tiles)
+        
         # Calculate the lenth of the row(s) with the most tiles
         max_length: int = max( (len(row) for row in self.board_row_tiles) )
 
@@ -236,24 +236,13 @@ class Board():
         for row in self.board_row_tiles:
             # Print the spaces before the row
             print(" "*(max_length-len(row)), end="")
-            tile : Tile
+            tile: Tile
             for tile in row:
                 # Print each tile
-                if numbered_tiles is None:
-                    if tile.is_empty()  or  tile.get_piece().is_computer_piece():
-                        print(f"{str(tile)}", end=" ")
-                    else:
-                        assert tile is not None
-                        assert tile.get_piece() is not None
-                        assert tile.get_piece().is_person_piece()
-                        assert tile.get_piece().is_person_piece() 
-                        
-                        print(f"{str(self.pieces.index(tile.get_piece()))}", end=" ")
-                        
+                if tile in numbered_tiles:
+                    print(f"{Board.CHARACTERS[numbered_tiles.index(tile)]}", end=" ")
                 else:
-                    if tile in numbered_tiles:
-                        print(f"{Board.CHARACTERS[numbered_tiles.index(tile)]}", end=" ")
-                    else:
-                        print(f"{tile.get_basic_str()}", end=" ")
+                    assert tile is not None
+                    print(f"{str(tile)}", end=" ")
             print("")   # New line
         print("\n")
