@@ -16,7 +16,6 @@ class Tile():
         return Tile.EMPTY_TYLE_STR if self.is_empty() else str(self.get_piece())
     
     def set_piece(self, new_piece: Piece) -> None:
-        assert new_piece is not None
         self.piece = new_piece
     
     def set_empty(self) -> None:
@@ -51,7 +50,6 @@ class Tile():
         assert len(list(self.neighbours.keys())) <= 6
 
     def get_neighbours(self) -> dict:
-        assert 2 <= len(list(self.neighbours.keys())) <= 6
         return self.neighbours
     
     def get_piece(self) -> Piece:
