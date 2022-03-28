@@ -99,13 +99,13 @@ class Board():
         i = 0
         for piece in self.get_person_pieces():
             self.board_tiles[i].set_piece(piece)
-            piece.set_tile(self.board_tiles[i])
+            #piece.set_tile(self.board_tiles[i])         # TODO remove
             i += 1
         assert i == 10
         
         for piece in self.get_computer_pieces():
             self.board_tiles[-i].set_piece(piece)
-            piece.set_tile(self.board_tiles[-i])
+            # piece.set_tile(self.board_tiles[-i])      # TODO remove
             i -= 1
         assert i == 0
         
@@ -115,6 +115,9 @@ class Board():
     """Returns a filter that iterates through all Pieces of the person"""
     def get_person_pieces(self):
         return filter(lambda p: p.is_person_piece(), self.pieces)
+    
+    def get_person_tiles(self):
+        return filter(lambda t: not t.is_empty() and t.get_piece().is_person_piece(), self.board_tiles)
 
     """Returns a filter that iterates through all Pieces of the computer"""
     def get_computer_pieces(self):
@@ -181,17 +184,15 @@ class Board():
                                     assert False, "It is neccessary"
                                     
     """Moves the piece in the arguments to the tile in the paramenters. If the movement is not possible it does nothing returns False"""
-    def move_piece_to_tile(self, piece_to_move: Piece, destination_tile: Tile) -> bool:
-        assert piece_to_move is not None
+    def move_piece_to_tile(self, tile_origin: Tile, destination_tile: Tile) -> bool:
         assert destination_tile is not None
 
         if not destination_tile.is_empty():
             # We cannot move here
             return False
         
-        piece_to_move.get_tile().set_empty()
-        piece_to_move.set_tile(destination_tile)
-        destination_tile.set_piece(piece_to_move)
+        destination_tile.set_piece(tile_origin.get_piece())
+        tile_origin.set_empty()
 
         assert sum(1 for tile in self.board_tiles if not tile.is_empty()) == 20
         return True
@@ -226,7 +227,7 @@ class Board():
         assert all(tile.get_distance_from_bottom_vertex() > 0 for tile in self.board_tiles[:-1])   # Check the rest of the tiles
 
     """Prints the board in the command line"""
-    def print_board(self, numbered_tiles=None, characters="123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ") -> None:
+    def print_board(self, numbered_tiles=None, characters="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ") -> None:
         numbered_tiles = [] if numbered_tiles is None else list(numbered_tiles)
         
         # Calculate the lenth of the row(s) with the most tiles
@@ -240,9 +241,15 @@ class Board():
             for tile in row:
                 # Print each tile
                 if tile in numbered_tiles:
-                    print(f"{Board.CHARACTERS[numbered_tiles.index(tile)]}", end=" ")
+                    print(f"{characters[numbered_tiles.index(tile)]}", end=" ")
                 else:
                     assert tile is not None
                     print(f"{str(tile)}", end=" ")
             print("")   # New line
         print("\n")
+    
+    def get_tile(self, piece: Piece):
+        assert piece is not None
+        assert isinstance(piece, Piece)
+        
+        return next(tile for tile in self.board_tiles if tile.get_piece() is piece)

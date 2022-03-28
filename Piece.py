@@ -1,4 +1,4 @@
-from Tile import Tile
+#from Tile import Tile
 
 """Represents a piece in the game (either from the computer or the person)"""
 class Piece():
@@ -6,23 +6,24 @@ class Piece():
     PERSON_COLOR: str = "O"
 
     def __init__(self, color: str) -> None:
-        self.tile: Tile = None
+        #self.tile: Tile = None
         self.color: str = color
 
-        assert self.color == Tile.COMPUTER_COLOR  or  self.color == Tile.PERSON_COLOR
-        assert Tile.COMPUTER_COLOR  != Tile.PERSON_COLOR
+        #assert self.color == Tile.COMPUTER_COLOR  or  self.color == Tile.PERSON_COLOR
+        #assert Tile.COMPUTER_COLOR  != Tile.PERSON_COLOR
         
     def __str__(self) -> str:
         assert isinstance(self.get_color(), str)
         return self.get_color()
 
-    def set_tile(self, new_tile: Tile) -> None:
+    """def set_tile(self, new_tile: Tile) -> None:
         assert new_tile is not None
         self.tile = new_tile
     
     def get_tile(self) -> Tile:
         assert self.tile is not None
         return self.tile
+    """
     
     def get_color(self) -> str:
         assert self.color is not None
