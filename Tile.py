@@ -16,10 +16,13 @@ class Tile():
         return Tile.EMPTY_TYLE_STR if self.is_empty() else str(self.get_piece())
     
     def set_piece(self, new_piece: Piece) -> None:
+        assert new_piece is not None
         self.piece = new_piece
     
     def set_empty(self) -> None:
         self.set_piece(None)
+        assert self.get_piece() is None
+        assert self.is_empty()
     
     def set_distance_from_top_vertex(self, new_distance: int) -> bool:
         if self.distance_from_top_vertex == Tile.DEFAULT_DISTANCE  or  (new_distance < self.distance_from_top_vertex):
@@ -33,19 +36,22 @@ class Tile():
             return True
         return False
 
-    def get_basic_str(self) -> str:
-        return Tile.EMPTY_TYLE_STR if self.is_empty() else self.get_piece().get_color()
-
     def get_distance_from_top_vertex(self) -> int:
+        assert self.distance_from_top_vertex != Tile.DEFAULT_DISTANCE
+        assert self.distance_from_top_vertex >= 0
         return self.distance_from_top_vertex
 
     def get_distance_from_bottom_vertex(self) -> int:
+        assert self.distance_from_bottom_vertex != Tile.DEFAULT_DISTANCE
+        assert self.distance_from_bottom_vertex >= 0
         return self.distance_from_bottom_vertex
     
     def add_neighbour(self, direction: str, neighbour_tile) -> None:
         self.neighbours[direction] = neighbour_tile
+        assert len(list(self.neighbours.keys())) <= 6
 
     def get_neighbours(self) -> dict:
+        assert 2 <= len(list(self.neighbours.keys())) <= 6
         return self.neighbours
     
     def get_piece(self) -> Piece:
