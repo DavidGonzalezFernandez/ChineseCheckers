@@ -99,13 +99,11 @@ class Board():
         i = 0
         for piece in self.get_person_pieces():
             self.board_tiles[i].set_piece(piece)
-            #piece.set_tile(self.board_tiles[i])         # TODO remove
             i += 1
         assert i == 10
         
         for piece in self.get_computer_pieces():
             self.board_tiles[-i].set_piece(piece)
-            # piece.set_tile(self.board_tiles[-i])      # TODO remove
             i -= 1
         assert i == 0
         
@@ -138,8 +136,13 @@ class Board():
             return 1_000_000
         elif self.has_person_won():
             return -1_000_000
-        else:
-            return sum(p.get_score() for p in self.get_computer_pieces()) - sum(p.get_score() for p in self.get_person_pieces())
+        return sum(t.get_distance_from_top_vertex() for t in self.get_computer_tiles()) - sum(t.get_distance_from_bottom_vertex for t in self.get_person_tiles())
+        
+    def get_computer_tiles(self):
+        return filter(lambda t: not t.is_empty()  and  t.get_piece().is_computer_piece(), self.board_tiles)
+
+    def get_person_tiles(self):
+        return filter(lambda t: not t.is_empty()  and  t.get_piece().is_person_piece(), self.board_tiles)
     
     """Generator that outputs all the tiles where you can move to"""
     def get_all_possible_tiles_to_move(self, tile: Tile, only_jumps = False, already_jumped_from = None, already_returned = None):
