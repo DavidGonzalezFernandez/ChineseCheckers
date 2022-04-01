@@ -34,16 +34,20 @@ def ask_person_for_tile_destination(board: Board, tile_origin: Tile) -> Tile:
             assert destination_tile.is_empty()
             return destination_tile
 
-def minimax(board: Board, depth: int, maximize_for_player2: bool = True) -> tuple[int, Tile, Tile]:
-    if depth==0  or  board.has_game_ended():
-        return board.get_score(), None, None
+def minimax(board: Board, depth: int, player1_turn: bool, maximizing: bool = True) -> tuple[int, Tile, Tile]:
+    if depth==0:
+        return board.get_score(player1_turn), None, None
+
+    if board.has_game_ended():
+        # We add the depth as an incentive to choose the branch that is shorter
+        return board.get_score(player1_turn)+depth, None, None
     
-    if maximize_for_player2:
+    if maximizing:
         max_points, better_origin, better_destination = float('-inf'), None, None
-        for tile_origin in board.get_player2_tiles():
+        for tile_origin in board.get_player1_tiles() if player1_turn else board.get_player2_tiles():
             for tile_destination in board.get_all_valid_moves(tile_origin):
                 board.move_piece_to_tile(tile_origin, tile_destination)
-                res_points, _1, _2 = minimax(board, depth-1, not maximize_for_player2)
+                res_points, _1, _2 = minimax(board, depth-1, player1_turn, not maximizing)
                 board.move_piece_to_tile(tile_destination, tile_origin)
 
                 if res_points > max_points:
@@ -52,10 +56,10 @@ def minimax(board: Board, depth: int, maximize_for_player2: bool = True) -> tupl
     
     else:
         min_points, better_origin, better_destination = float('inf'), None, None
-        for tile_origin in board.get_player1_tiles():
+        for tile_origin in board.get_player2_tiles() if player1_turn else board.get_player1_tiles():
             for tile_destination in board.get_all_valid_moves(tile_origin):
                 board.move_piece_to_tile(tile_origin, tile_destination)
-                res_points, _1, _2 = minimax(board, depth-1, not maximize_for_player2)
+                res_points, _1, _2 = minimax(board, depth-1, player1_turn, not maximizing)
                 board.move_piece_to_tile(tile_destination, tile_origin)
 
                 if res_points < min_points:
@@ -68,13 +72,16 @@ class Player():
     
     def get_name(self):
         return self.name
+    
+    def is_player1(self):
+        return "1" in self.get_name()
 
 class Player_Computer(Player):
     def __init__(self, name: str) -> None:
         super().__init__(name)
 
     def get_move(self, board: Board) -> tuple[Tile, Tile]:
-        _, tile_origin, tile_destination = minimax(board, 3)
+        _, tile_origin, tile_destination = minimax(board, 3, self.is_player1())
 
         return (tile_origin, tile_destination)
 

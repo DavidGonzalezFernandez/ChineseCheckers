@@ -104,12 +104,22 @@ class Board():
         return self.has_player2_won() or self.has_player1_won()
 
     """Return the score for the current state of the board"""
-    def get_score(self) -> int:
-        if self.has_player2_won():
-            return 1_000_000
-        elif self.has_player1_won():
-            return -1_000_000
-        return sum(t.get_score() for t in self.get_player2_tiles()) - sum(t.get_score() for t in self.get_player1_tiles())
+    def get_score(self, player1_turn: bool) -> int:
+        if player1_turn:
+            if self.has_player1_won():
+                return 1_000_000
+            elif self.has_player2_won():
+                return -1_000_000
+            return sum(t.get_score() for t in self.get_player1_tiles()) - sum(t.get_score() for t in self.get_player2_tiles())
+
+        else:
+            if self.has_player1_won():
+                return -1_000_000
+            elif self.has_player2_won():
+                return 1_000_000
+            return sum(t.get_score() for t in self.get_player2_tiles()) - sum(t.get_score() for t in self.get_player1_tiles())
+
+        
     
     """Returns all the tiles that contain pieces from the player2"""
     def get_player2_tiles(self):
