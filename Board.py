@@ -6,7 +6,6 @@ class Board():
         self.board_row_tiles: list[list[Tile]] = self.generate_board_rows()
         self.board_tiles: list[Tile] = self.rows_to_board()
 
-        assert Piece.PERSON_COLOR != Piece.COMPUTER_COLOR
         self.pieces: list[Piece] = self.generate_pieces()
 
         self.add_neighbouring_tiles()
@@ -28,10 +27,10 @@ class Board():
             board.extend(row)
         return board
 
-    """Creates 10 pieces for the person and another 10 pieces for the computer.
+    """Creates 10 pieces for the player1 and another 10 pieces for the player2.
     Returns a single list with all 20 pieces"""
     def generate_pieces(self) -> list[Piece]:
-        pieces = [Piece(Piece.PERSON_COLOR) for _ in range(10)] + [Piece(Piece.COMPUTER_COLOR) for _ in range(10)]
+        pieces = [Piece(Piece.PLAYER1_COLOR) for _ in range(10)] + [Piece(Piece.PLAYER2_COLOR) for _ in range(10)]
         return pieces
     
     """Adds all the neighbours for each tile"""
@@ -76,49 +75,49 @@ class Board():
     """Places the 20 pieces where they should be at the start of the game"""
     def place_pieces_in_board(self) -> None:
         i = 0
-        for piece in self.get_person_pieces():
+        for piece in self.get_player1_pieces():
             self.board_tiles[i].set_piece(piece)
             i += 1
         
-        for piece in self.get_computer_pieces():
+        for piece in self.get_player2_pieces():
             self.board_tiles[-i].set_piece(piece)
             i -= 1
         
-    """Returns a filter that iterates through all Pieces of the person"""
-    def get_person_pieces(self):
-        return filter(lambda p: p.is_person_piece(), self.pieces)
+    """Returns a filter that iterates through all Pieces of the player1"""
+    def get_player1_pieces(self):
+        return filter(lambda p: p.is_player1_piece(), self.pieces)
 
-    """Returns a filter that iterates through all Pieces of the computer"""
-    def get_computer_pieces(self):
-        return filter(lambda p: p.is_computer_piece(), self.pieces)
+    """Returns a filter that iterates through all Pieces of the player2"""
+    def get_player2_pieces(self):
+        return filter(lambda p: p.is_player2_piece(), self.pieces)
 
-    """Check if the computer has won"""
-    def has_computer_won(self) -> bool:
-        return all(not tile.is_empty() for tile in self.get_top_triangle_tiles())  and  any(tile.get_piece().is_computer_piece() for tile in self.get_top_triangle_tiles())
+    """Check if the player2 has won"""
+    def has_player2_won(self) -> bool:
+        return all(not tile.is_empty() for tile in self.get_top_triangle_tiles())  and  any(tile.get_piece().is_player2_piece() for tile in self.get_top_triangle_tiles())
 
-    """Check if the person has won"""
-    def has_person_won(self) -> bool:
-        return all(not tile.is_empty() for tile in self.get_bottom_triangle_tiles())  and  any(tile.get_piece().is_person_piece() for tile in self.get_bottom_triangle_tiles())
+    """Check if the player1 has won"""
+    def has_player1_won(self) -> bool:
+        return all(not tile.is_empty() for tile in self.get_bottom_triangle_tiles())  and  any(tile.get_piece().is_player1_piece() for tile in self.get_bottom_triangle_tiles())
     
     """Return True if (at least) one of the player has reached the end of the board"""
     def has_game_ended(self) -> bool:
-        return self.has_computer_won() or self.has_person_won()
+        return self.has_player2_won() or self.has_player1_won()
 
     """Return the score for the current state of the board"""
     def get_score(self) -> int:
-        if self.has_computer_won():
+        if self.has_player2_won():
             return 1_000_000
-        elif self.has_person_won():
+        elif self.has_player1_won():
             return -1_000_000
-        return sum(t.get_score() for t in self.get_computer_tiles()) - sum(t.get_score() for t in self.get_person_tiles())
+        return sum(t.get_score() for t in self.get_player2_tiles()) - sum(t.get_score() for t in self.get_player1_tiles())
     
-    """Returns all the tiles that contain pieces from the computer"""
-    def get_computer_tiles(self):
-        return filter(lambda t: not t.is_empty()  and  t.get_piece().is_computer_piece(), self.board_tiles)
+    """Returns all the tiles that contain pieces from the player2"""
+    def get_player2_tiles(self):
+        return filter(lambda t: not t.is_empty()  and  t.get_piece().is_player2_piece(), self.board_tiles)
 
-    """Returns all the tiles that contain pieces from the person"""
-    def get_person_tiles(self):
-        return filter(lambda t: not t.is_empty() and t.get_piece().is_person_piece(), self.board_tiles)
+    """Returns all the tiles that contain pieces from the player1"""
+    def get_player1_tiles(self):
+        return filter(lambda t: not t.is_empty() and t.get_piece().is_player1_piece(), self.board_tiles)
     
     """Generator that outputs all the tiles where you can move to"""
     def get_all_possible_tiles_to_move(self, tile: Tile, only_jumps = False, already_jumped_from = None, already_returned = None):
@@ -168,9 +167,9 @@ class Board():
     def get_all_valid_moves(self, tile_origin: Tile):
         for move in self.get_all_possible_tiles_to_move(tile_origin):
             # Moves that are not valid: move a piece that already rests in its target triangle out of that triangle
-            if tile_origin.get_piece().is_computer_piece()  and  tile_origin in self.get_top_triangle_tiles()  and   move not in self.get_top_triangle_tiles():
+            if tile_origin.get_piece().is_player2_piece()  and  tile_origin in self.get_top_triangle_tiles()  and   move not in self.get_top_triangle_tiles():
                 continue
-            elif tile_origin.get_piece().is_person_piece()  and  tile_origin in self.get_bottom_triangle_tiles()  and  move not in self.get_bottom_triangle_tiles():
+            elif tile_origin.get_piece().is_player1_piece()  and  tile_origin in self.get_bottom_triangle_tiles()  and  move not in self.get_bottom_triangle_tiles():
                 continue
             else:
                 yield move
@@ -194,19 +193,19 @@ class Board():
     def calculate_distances(self) -> None:
         pending_of_exploring: list[Tile]
 
-        # Calculate scores for person player
+        # Calculate scores for player1 player
         pending_of_exploring = [self.board_tiles[-1]]
-        pending_of_exploring[0].set_score_for_person(16)
+        pending_of_exploring[0].set_score_for_player1(16)
         while any(pending_of_exploring):
             exploring_tile, pending_of_exploring = pending_of_exploring[0], pending_of_exploring[1:]
-            pending_of_exploring.extend( [tile for tile in exploring_tile.get_neighbours().values() if tile.set_score_for_person(exploring_tile.get_score_for_person() - 1)] )
+            pending_of_exploring.extend( [tile for tile in exploring_tile.get_neighbours().values() if tile.set_score_for_player1(exploring_tile.get_score_for_player1() - 1)] )
         
-        # Calculate scores for computer player
+        # Calculate scores for player2 player
         pending_of_exploring = [self.board_tiles[0]]
-        pending_of_exploring[0].set_score_for_computer(16)
+        pending_of_exploring[0].set_score_for_player2(16)
         while any(pending_of_exploring):
             exploring_tile, pending_of_exploring = pending_of_exploring[0], pending_of_exploring[1:]
-            pending_of_exploring.extend( [tile for tile in exploring_tile.get_neighbours().values() if tile.set_score_for_computer(exploring_tile.get_score_for_computer() - 1)] )
+            pending_of_exploring.extend( [tile for tile in exploring_tile.get_neighbours().values() if tile.set_score_for_player2(exploring_tile.get_score_for_player2() - 1)] )
 
     """Prints the board in the command line"""
     def print_board(self, numbered_tiles=None, characters="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ") -> None:

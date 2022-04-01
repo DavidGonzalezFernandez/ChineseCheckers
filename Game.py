@@ -6,18 +6,18 @@ from random import choice
 CHARACTERS = "1234567890ABCDEFGHJKLMNPQRSTUVWXYZ"
 CHARACTERS_NO_ZERO = "123456789ABCDEFGHJKLMNPQRSTUVWXYZ"
 
-def get_person_move(board: Board) -> tuple[Tile, Tile]:
+def get_player1_move(board: Board) -> tuple[Tile, Tile]:
     # Select piece from all it pieces available
-    tile_origin: Tile = ask_person_for_piece(board)
+    tile_origin: Tile = ask_player1_for_piece(board)
 
     # Select the destination tile for the selected piece
-    tile_destination: Tile = ask_person_for_tile_destination(board, tile_origin)
+    tile_destination: Tile = ask_player1_for_tile_destination(board, tile_origin)
 
     return (tile_origin, tile_destination)
 
-def ask_person_for_piece(board: Board) -> Tile:
+def ask_player1_for_piece(board: Board) -> Tile:
     tiles_with_movable_pieces: list[Tile] = list(filter(
-        lambda t: any(board.get_all_valid_moves(t)), board.get_person_tiles()
+        lambda t: any(board.get_all_valid_moves(t)), board.get_player1_tiles()
     ))
     board.print_board(tiles_with_movable_pieces, "".join(CHARACTERS))
 
@@ -25,13 +25,13 @@ def ask_person_for_piece(board: Board) -> Tile:
         n = input(f"Select a piece ({CHARACTERS[0]} - {CHARACTERS[len(tiles_with_movable_pieces)-1]})").strip().upper()
         if n in CHARACTERS[ : len(tiles_with_movable_pieces)]:
             selected_tile = tiles_with_movable_pieces[CHARACTERS.index(n)]
-            assert selected_tile.get_piece().is_person_piece()
+            assert selected_tile.get_piece().is_player1_piece()
             return selected_tile
 
-def ask_person_for_tile_destination(board: Board, tile_origin: Tile) -> Tile:
+def ask_player1_for_tile_destination(board: Board, tile_origin: Tile) -> Tile:
     assert board is not None
     assert isinstance(tile_origin, Tile)
-    assert tile_origin.get_piece().is_person_piece()
+    assert tile_origin.get_piece().is_player1_piece()
 
     available_tile_destinations: list[Tile] = [tile for tile in board.get_all_valid_moves(tile_origin)]
 
@@ -46,16 +46,16 @@ def ask_person_for_tile_destination(board: Board, tile_origin: Tile) -> Tile:
             assert destination_tile.is_empty()
             return destination_tile
 
-def minimax(board: Board, depth: int, maximize_for_computer: bool = True) -> tuple[int, Tile, Tile]:
+def minimax(board: Board, depth: int, maximize_for_player2: bool = True) -> tuple[int, Tile, Tile]:
     if depth==0  or  board.has_game_ended():
         return board.get_score(), None, None
     
-    if maximize_for_computer:
+    if maximize_for_player2:
         max_points, better_origin, better_destination = float('-inf'), None, None
-        for tile_origin in board.get_computer_tiles():
+        for tile_origin in board.get_player2_tiles():
             for tile_destination in board.get_all_valid_moves(tile_origin):
                 board.move_piece_to_tile(tile_origin, tile_destination)
-                res_points, _1, _2 = minimax(board, depth-1, not maximize_for_computer)
+                res_points, _1, _2 = minimax(board, depth-1, not maximize_for_player2)
                 board.move_piece_to_tile(tile_destination, tile_origin)
 
                 if res_points > max_points:
@@ -64,10 +64,10 @@ def minimax(board: Board, depth: int, maximize_for_computer: bool = True) -> tup
     
     else:
         min_points, better_origin, better_destination = float('inf'), None, None
-        for tile_origin in board.get_person_tiles():
+        for tile_origin in board.get_player1_tiles():
             for tile_destination in board.get_all_valid_moves(tile_origin):
                 board.move_piece_to_tile(tile_origin, tile_destination)
-                res_points, _1, _2 = minimax(board, depth-1, not maximize_for_computer)
+                res_points, _1, _2 = minimax(board, depth-1, not maximize_for_player2)
                 board.move_piece_to_tile(tile_destination, tile_origin)
 
                 if res_points < min_points:
@@ -75,7 +75,7 @@ def minimax(board: Board, depth: int, maximize_for_computer: bool = True) -> tup
         return min_points, better_origin, better_destination
 
 
-def get_computer_move(board: Board) -> tuple[Tile, Tile]:
+def get_player2_move(board: Board) -> tuple[Tile, Tile]:
     _, tile_origin, tile_destination = minimax(board, 3)
 
     return (tile_origin, tile_destination)
@@ -84,28 +84,28 @@ def get_computer_move(board: Board) -> tuple[Tile, Tile]:
 if __name__ == "__main__":
     board = Board()
 
-    is_person_turn = choice([True, False])
-    if is_person_turn:
+    is_player1_turn = choice([True, False])
+    if is_player1_turn:
         print("You start!\n")
     else:
-        print("The computer starts\n")
+        print("The player2 starts\n")
     
     while not board.has_game_ended():
-        if is_person_turn:
-            tile_origin, tile_destination = get_person_move(board)
-            assert tile_origin.get_piece().is_person_piece()
+        if is_player1_turn:
+            tile_origin, tile_destination = get_player1_move(board)
+            assert tile_origin.get_piece().is_player1_piece()
         else:
-            tile_origin, tile_destination = get_computer_move(board)
-            assert tile_origin.get_piece().is_computer_piece()
+            tile_origin, tile_destination = get_player2_move(board)
+            assert tile_origin.get_piece().is_player2_piece()
 
         assert tile_destination.is_empty()
         board.move_piece_to_tile(tile_origin, tile_destination)
         board.print_board()
-        is_person_turn = not is_person_turn
+        is_player1_turn = not is_player1_turn
     
-    if board.has_person_won():
-        assert not board.has_computer_won()
+    if board.has_player1_won():
+        assert not board.has_player2_won()
         print("You won!")
     else:
-        assert board.has_computer_won()
-        print("The computer has won :(")
+        assert board.has_player2_won()
+        print("The player2 has won :(")
