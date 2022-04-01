@@ -13,6 +13,7 @@ class Board():
         self.place_pieces_in_board()
         self.calculate_distances()
     
+    """Creates and returns a lists of Tiles that represent each row in the board"""
     def generate_board_rows(self) -> list[list[Tile]]:
         TILES_PER_ROW: list[int] = [1, 2, 3, 4, 13, 12, 11, 10, 9, 10, 11, 12, 13, 4, 3, 2, 1]
         board_rows: list[list[Tile]] = []
@@ -91,9 +92,11 @@ class Board():
     def get_computer_pieces(self):
         return filter(lambda p: p.is_computer_piece(), self.pieces)
 
+    """Check if the computer has won"""
     def has_computer_won(self) -> bool:
         return all(not tile.is_empty() for tile in self.get_top_triangle_tiles())  and  any(tile.get_piece().is_computer_piece() for tile in self.get_top_triangle_tiles())
 
+    """Check if the person has won"""
     def has_person_won(self) -> bool:
         return all(not tile.is_empty() for tile in self.get_bottom_triangle_tiles())  and  any(tile.get_piece().is_person_piece() for tile in self.get_bottom_triangle_tiles())
     
@@ -101,16 +104,19 @@ class Board():
     def has_game_ended(self) -> bool:
         return self.has_computer_won() or self.has_person_won()
 
+    """Return the score for the current state of the board"""
     def get_score(self) -> int:
         if self.has_computer_won():
             return 1_000_000
         elif self.has_person_won():
             return -1_000_000
         return sum(t.get_score() for t in self.get_computer_tiles()) - sum(t.get_score() for t in self.get_person_tiles())
-        
+    
+    """Returns all the tiles that contain pieces from the computer"""
     def get_computer_tiles(self):
         return filter(lambda t: not t.is_empty()  and  t.get_piece().is_computer_piece(), self.board_tiles)
 
+    """Returns all the tiles that contain pieces from the person"""
     def get_person_tiles(self):
         return filter(lambda t: not t.is_empty() and t.get_piece().is_person_piece(), self.board_tiles)
     
@@ -128,9 +134,6 @@ class Board():
         if tile not in already_jumped_from:
             # Add the starting tile 
             already_jumped_from.add(tile)
-
-            neighbour_direction: str
-            neighbour_tile: Tile
 
             for (neighbour_direction, neighbour_tile) in tile.get_neighbours().items():
                 if neighbour_tile.is_empty():
@@ -150,20 +153,21 @@ class Board():
                                 already_returned.add(neighbours_neighbour)
                             for move in self.get_all_possible_tiles_to_move(neighbours_neighbour, True, already_jumped_from, already_returned):
                                 # Maybe we can keep on jumping
-                                if move not in already_returned:
-                                    yield move
-                                    already_returned.add(move)
-                                else:
-                                    assert False, "It is neccessary"
+                                yield move
+                                already_returned.add(move)
     
+    """Return the tiles that are part of the triangle in the top"""
     def get_top_triangle_tiles(self):
         return self.board_tiles[:10]
 
+    """Return the tiles that are part of the triangle in the bottom"""
     def get_bottom_triangle_tiles(self):
         return self.board_tiles[-10:]
     
+    """Generates all the valid moves from the piece in the argument"""
     def get_all_valid_moves(self, tile_origin: Tile):
         for move in self.get_all_possible_tiles_to_move(tile_origin):
+            # Moves that are not valid: move a piece that already rests in its target triangle out of that triangle
             if tile_origin.get_piece().is_computer_piece()  and  tile_origin in self.get_top_triangle_tiles()  and   move not in self.get_top_triangle_tiles():
                 continue
             elif tile_origin.get_piece().is_person_piece()  and  tile_origin in self.get_bottom_triangle_tiles()  and  move not in self.get_bottom_triangle_tiles():
@@ -177,7 +181,7 @@ class Board():
         assert destination_tile is not None
 
         if not destination_tile.is_empty():
-            # We cannot move here
+            # We cannot move here, do not do anythin
             return False
         
         destination_tile.set_piece(tile_origin.get_piece())
@@ -226,6 +230,7 @@ class Board():
             print("")   # New line
         print("\n")
     
+    """Returns the tile that contain the piece in the argument"""
     def get_tile(self, piece: Piece):
         assert piece is not None
         assert isinstance(piece, Piece)
