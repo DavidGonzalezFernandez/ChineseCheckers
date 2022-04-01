@@ -119,10 +119,10 @@ class Board():
         return filter(lambda p: p.is_computer_piece(), self.pieces)
 
     def has_computer_won(self) -> bool:
-        return all(not tile.is_empty() and tile.get_piece().is_computer_piece() for tile in self.board_tiles[:10])
+        return all(not tile.is_empty() for tile in self.get_top_triangle_tiles())  and  any(tile.get_piece().is_computer_piece() for tile in self.get_top_triangle_tiles())
 
     def has_person_won(self) -> bool:
-        return all(not tile.is_empty() and tile.get_piece().is_person_piece() for tile in self.board_tiles[-10:])
+        return all(not tile.is_empty() for tile in self.get_bottom_triangle_tiles())  and  any(tile.get_piece().is_person_piece() for tile in self.get_bottom_triangle_tiles())
     
     """Return True if (at least) one of the player has reached the end of the board"""
     def has_game_ended(self) -> bool:
@@ -133,7 +133,7 @@ class Board():
             return 1_000_000
         elif self.has_person_won():
             return -1_000_000
-        return sum(t.get_distance_from_top_vertex() for t in self.get_computer_tiles()) - sum(t.get_distance_from_bottom_vertex() for t in self.get_person_tiles())
+        return sum(t.get_score() for t in self.get_computer_tiles()) - sum(t.get_score() for t in self.get_person_tiles())
         
     def get_computer_tiles(self):
         return filter(lambda t: not t.is_empty()  and  t.get_piece().is_computer_piece(), self.board_tiles)
@@ -184,10 +184,10 @@ class Board():
                                     assert False, "It is neccessary"
     
     def get_top_triangle_tiles(self):
-        return self.board_row_tiles[0] + self.board_row_tiles[1] + self.board_row_tiles[2] + self.board_row_tiles[3]
+        return self.board_tiles[:10]
 
     def get_bottom_triangle_tiles(self):
-        return self.board_row_tiles[-1] + self.board_row_tiles[-2] + self.board_row_tiles[-3] + self.board_row_tiles[-4]
+        return self.board_tiles[-10:]
     
     def get_all_valid_moves(self, tile_origin: Tile):
         for move in self.get_all_possible_tiles_to_move(tile_origin):
@@ -217,30 +217,32 @@ class Board():
     def calculate_distances(self) -> None:
         pending_of_exploring: list[Tile]
 
-        # Calculate distances from top vertex
-        self.board_tiles[0].set_distance_from_top_vertex(0)
-        pending_of_exploring = [tile for tile in self.board_tiles[0].get_neighbours().values() if tile.set_distance_from_top_vertex(1)]
-        while len(pending_of_exploring) > 0:
+        # Calculate scores for person player
+        pending_of_exploring = [self.board_tiles[-1]]
+        pending_of_exploring[0].set_score_for_person(16)
+        while any(pending_of_exploring):
             exploring_tile, pending_of_exploring = pending_of_exploring[0], pending_of_exploring[1:]
-            pending_of_exploring.extend( [tile for tile in exploring_tile.get_neighbours().values() if tile.set_distance_from_top_vertex(exploring_tile.get_distance_from_top_vertex() + 1)] )
+            pending_of_exploring.extend( [tile for tile in exploring_tile.get_neighbours().values() if tile.set_score_for_person(exploring_tile.get_score_for_person() - 1)] )
         
         # Checks
-        distances = [tile.get_distance_from_top_vertex() for tile in self.board_tiles]              # Used at the end to check that the distances have not changed
-        assert distances[0] == 0                                                                    # Checks the distance from top for the first tile
-        assert all(distance > 0 for distance in distances[1:])                                      # Checks the distance from top for the rest of tiles
-        assert all(tile.distance_from_bottom_vertex == Tile.DEFAULT_DISTANCE for tile in self.board_tiles) # Checks the distance to the bottom of all tiles
+        distances = [tile.get_score_for_person() for tile in self.board_tiles]                               # Used at the end to check that the distances have not changed
+        assert distances[-1] == 16                                                                           # Checks the distance from top for the first tile
+        assert distances[0] == 0                                                                             # Checks the distance from top for the first tile
+        assert all(distance < 16 for distance in distances[:-1])                                             # Checks the distance from top for the rest of tiles
+        assert all(tile.score_for_computer == Tile.DEFAULT_SCORE for tile in self.board_tiles)               # Checks the distance to the bottom of all tiles
         
-        # Calculate distances from bottom vertex
-        self.board_tiles[-1].set_distance_from_bottom_vertex(0)
-        pending_of_exploring = [tile for tile in self.board_tiles[-1].get_neighbours().values() if tile.set_distance_from_bottom_vertex(1)]
-        while len(pending_of_exploring) > 0:
+        # Calculate scores for computer player
+        pending_of_exploring = [self.board_tiles[0]]
+        pending_of_exploring[0].set_score_for_computer(16)
+        while any(pending_of_exploring):
             exploring_tile, pending_of_exploring = pending_of_exploring[0], pending_of_exploring[1:]
-            pending_of_exploring.extend( [tile for tile in exploring_tile.get_neighbours().values() if tile.set_distance_from_bottom_vertex(exploring_tile.get_distance_from_bottom_vertex() + 1)] )
+            pending_of_exploring.extend( [tile for tile in exploring_tile.get_neighbours().values() if tile.set_score_for_computer(exploring_tile.get_score_for_computer() - 1)] )
 
         # Checks
-        assert [tile.get_distance_from_top_vertex() for tile in self.board_tiles] == distances     # Checks that the distance from top is still the same
-        assert self.board_tiles[-1].get_distance_from_bottom_vertex() == 0                         # Checks the tile at the bottom
-        assert all(tile.get_distance_from_bottom_vertex() > 0 for tile in self.board_tiles[:-1])   # Check the rest of the tiles
+        assert [tile.get_score_for_person() for tile in self.board_tiles] == distances      # Checks that the distance from top is still the same
+        assert self.board_tiles[0].get_score_for_computer() == 16                           # Checks the tile at the bottom
+        assert self.board_tiles[-1].get_score_for_computer() == 0                           # Checks the tile at the bottom
+        assert all(tile.get_score_for_computer() < 16 for tile in self.board_tiles[1:-1])   # Check the rest of the tiles
 
     """Prints the board in the command line"""
     def print_board(self, numbered_tiles=None, characters="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ") -> None:

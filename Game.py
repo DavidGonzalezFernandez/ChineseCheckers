@@ -22,7 +22,7 @@ def ask_person_for_piece(board: Board) -> Tile:
     board.print_board(tiles_with_movable_pieces, "".join(CHARACTERS))
 
     while True:
-        n = input(f"Select a piece ({CHARACTERS[0]} - {CHARACTERS[len(tiles_with_movable_pieces)-1]})").strip()
+        n = input(f"Select a piece ({CHARACTERS[0]} - {CHARACTERS[len(tiles_with_movable_pieces)-1]})").strip().upper()
         if n in CHARACTERS[ : len(tiles_with_movable_pieces)]:
             selected_tile = tiles_with_movable_pieces[CHARACTERS.index(n)]
             assert selected_tile.get_piece().is_person_piece()
@@ -38,7 +38,7 @@ def ask_person_for_tile_destination(board: Board, tile_origin: Tile) -> Tile:
     board.print_board(available_tile_destinations, CHARACTERS_NO_ZERO)
 
     while True:
-        n = input(f"Select a tile to move to ({CHARACTERS_NO_ZERO[0]} - {CHARACTERS_NO_ZERO[len(available_tile_destinations)-1]})").strip()
+        n = input(f"Select a tile to move to ({CHARACTERS_NO_ZERO[0]} - {CHARACTERS_NO_ZERO[len(available_tile_destinations)-1]})").strip().upper()
         if n in CHARACTERS_NO_ZERO[ : 1+len(available_tile_destinations)]:
             destination_tile = available_tile_destinations[ CHARACTERS_NO_ZERO.index(n) ]
             assert destination_tile is not None
@@ -46,33 +46,33 @@ def ask_person_for_tile_destination(board: Board, tile_origin: Tile) -> Tile:
             assert destination_tile.is_empty()
             return destination_tile
 
-def minimax(board: Board, depth: int, minimizing: bool = True) -> tuple[int, Tile, Tile]:
+def minimax(board: Board, depth: int, maximize_for_computer: bool = True) -> tuple[int, Tile, Tile]:
     if depth==0  or  board.has_game_ended():
         return board.get_score(), None, None
     
-    if minimizing:
-        min_points, better_origin, better_destination = float('inf'), None, None
+    if maximize_for_computer:
+        max_points, better_origin, better_destination = float('-inf'), None, None
         for tile_origin in board.get_computer_tiles():
             for tile_destination in board.get_all_valid_moves(tile_origin):
                 board.move_piece_to_tile(tile_origin, tile_destination)
-                res_points, _1, _2 = minimax(board, depth-1, not minimizing)
-                board.move_piece_to_tile(tile_destination, tile_origin)
-
-                if res_points < min_points:
-                    min_points, better_origin, better_destination = res_points, tile_origin, tile_destination
-        return min_points, better_origin, better_destination
-    
-    else:
-        max_points, better_origin, better_destination = float('-inf'), None, None
-        for tile_origin in board.get_person_tiles():
-            for tile_destination in board.get_all_valid_moves(tile_origin):
-                board.move_piece_to_tile(tile_origin, tile_destination)
-                res_points, _1, _2 = minimax(board, depth-1, not minimizing)
+                res_points, _1, _2 = minimax(board, depth-1, not maximize_for_computer)
                 board.move_piece_to_tile(tile_destination, tile_origin)
 
                 if res_points > max_points:
                     max_points, better_origin, better_destination = res_points, tile_origin, tile_destination
         return max_points, better_origin, better_destination
+    
+    else:
+        min_points, better_origin, better_destination = float('inf'), None, None
+        for tile_origin in board.get_person_tiles():
+            for tile_destination in board.get_all_valid_moves(tile_origin):
+                board.move_piece_to_tile(tile_origin, tile_destination)
+                res_points, _1, _2 = minimax(board, depth-1, not maximize_for_computer)
+                board.move_piece_to_tile(tile_destination, tile_origin)
+
+                if res_points < min_points:
+                    min_points, better_origin, better_destination = res_points, tile_origin, tile_destination
+        return min_points, better_origin, better_destination
 
 
 def get_computer_move(board: Board) -> tuple[Tile, Tile]:
