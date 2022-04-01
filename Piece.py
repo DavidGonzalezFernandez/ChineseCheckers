@@ -21,13 +21,3 @@ class Piece():
     def is_person_piece(self) -> bool:
         assert (self.color == Piece.PERSON_COLOR) ^ (self.color == Piece.COMPUTER_COLOR)
         return self.color == Piece.PERSON_COLOR
-        
-    """
-    def get_score(self) -> int:
-        assert self.get_tile().get_distance_from_top_vertex()  >= 0
-        assert self.get_tile().get_distance_from_bottom_vertex() >= 0
-
-        if self.is_computer_piece():
-            return self.get_tile().get_distance_from_top_vertex()
-        else:
-            return self.get_tile().get_distance_from_bottom_vertex()"""
