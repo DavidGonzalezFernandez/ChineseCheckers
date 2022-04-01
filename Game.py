@@ -46,16 +46,43 @@ def ask_person_for_tile_destination(board: Board, tile_origin: Tile) -> Tile:
             assert destination_tile.is_empty()
             return destination_tile
 
+def minimax(board: Board, depth: int, minimizing: bool = True) -> tuple[int, Tile, Tile]:
+    if depth==0  or  board.has_game_ended():
+        return board.get_score(), None, None
+    
+    if minimizing:
+        min_points, better_origin, better_destination = float('inf'), None, None
+        for tile_origin in board.get_computer_tiles():
+            for tile_destination in board.get_all_possible_tiles_to_move(tile_origin):
+                board.move_piece_to_tile(tile_origin, tile_destination)
+                res_points, _1, _2 = minimax(board, depth-1, not minimizing)
+                board.move_piece_to_tile(tile_destination, tile_origin)
+
+                if res_points < min_points:
+                    min_points, better_origin, better_destination = res_points, tile_origin, tile_destination
+        return min_points, better_origin, better_destination
+    
+    else:
+        max_points, better_origin, better_destination = float('-inf'), None, None
+        for tile_origin in board.get_person_tiles():
+            for tile_destination in board.get_all_possible_tiles_to_move(tile_origin):
+                board.move_piece_to_tile(tile_origin, tile_destination)
+                res_points, _1, _2 = minimax(board, depth-1, not minimizing)
+                board.move_piece_to_tile(tile_destination, tile_origin)
+
+                if res_points > max_points:
+                    max_points, better_origin, better_destination = res_points, tile_origin, tile_destination
+        return max_points, better_origin, better_destination
+
 
 def get_computer_move(board: Board) -> tuple[Tile, Tile]:
-    tile_origin, tile_destination = None, None    #TODO: implement
+    _, tile_origin, tile_destination = minimax(board, 3)
 
     return (tile_origin, tile_destination)
 
 
 if __name__ == "__main__":
     board = Board()
-    board.print_board()
 
     is_person_turn = choice([True, False])
     if is_person_turn:
@@ -69,12 +96,11 @@ if __name__ == "__main__":
             assert tile_origin.get_piece().is_person_piece()
         else:
             tile_origin, tile_destination = get_computer_move(board)
-            assert tile_origin.is_computer_piece()
+            assert tile_origin.get_piece().is_computer_piece()
 
         assert tile_destination.is_empty()
         board.move_piece_to_tile(tile_origin, tile_destination)
         board.print_board()
-        input()
         is_person_turn = not is_person_turn
     
     if board.has_person_won():
