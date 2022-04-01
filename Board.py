@@ -16,7 +16,7 @@ class Board():
     def generate_board_rows(self) -> list[list[Tile]]:
         TILES_PER_ROW: list[int] = [1, 2, 3, 4, 13, 12, 11, 10, 9, 10, 11, 12, 13, 4, 3, 2, 1]
         board_rows: list[list[Tile]] = []
-        for i in range(17):
+        for i in range(len(TILES_PER_ROW)):
             board_rows.append([Tile() for _ in range(TILES_PER_ROW[i])])
         return board_rows
     
@@ -25,14 +25,12 @@ class Board():
         board: list[Tile] = []
         for row in self.board_row_tiles:
             board.extend(row)
-
         return board
 
     """Creates 10 pieces for the person and another 10 pieces for the computer.
     Returns a single list with all 20 pieces"""
     def generate_pieces(self) -> list[Piece]:
         pieces = [Piece(Piece.PERSON_COLOR) for _ in range(10)] + [Piece(Piece.COMPUTER_COLOR) for _ in range(10)]
-        assert len(list(pieces)) == 20
         return pieces
     
     """Adds all the neighbours for each tile"""
@@ -43,9 +41,6 @@ class Board():
                 row[i].add_neighbour("R", row[i+1])
             for i in range(1, len(row)):
                 row[i].add_neighbour("L", row[i-1])
-        
-        # Check that the number of edges matches the expected
-        assert sum(len(list(tile.get_neighbours().values())) for row in self.board_row_tiles for tile in row) == (121 - 17) * 2
 
         # Add some diagonal edges (1/4)
         for row_index in [0, 1, 2, 8, 9, 10, 11]:
@@ -76,23 +71,6 @@ class Board():
             self.board_row_tiles[13][tile_index    ].add_neighbour("UR", self.board_row_tiles[12][tile_index + 5])
             self.board_row_tiles[12][tile_index + 4].add_neighbour("DR", self.board_row_tiles[13][tile_index])
             self.board_row_tiles[12][tile_index + 5].add_neighbour("DL", self.board_row_tiles[13][tile_index])
-
-        edge_count = 0
-        opposite_directions = {"L": "R", "R": "L", "UL": "DR", "UR": "DL", "DL": "UR", "DR": "UL"}
-        for row in self.board_row_tiles:
-            for tile in row:
-                # Check that every Tile has between 2 and 6 edges
-                assert 2 <= len(list(tile.get_neighbours().values())) <= 6
-                edge_count += len(list(tile.get_neighbours().values()))
-                for (neighbour_direction, neighbour_tile) in tile.get_neighbours().items():
-                    # Check that there are no loops
-                    assert neighbour_tile is not tile
-                    # Check that the edges exist in both ways
-                    assert neighbour_tile.get_neighbours()[opposite_directions[neighbour_direction]] == tile
-                    pass
-        
-        # Check number of edges match the expected number
-        assert edge_count == (121 - 17) * 2 * 3
     
     """Places the 20 pieces where they should be at the start of the game"""
     def place_pieces_in_board(self) -> None:
@@ -100,16 +78,11 @@ class Board():
         for piece in self.get_person_pieces():
             self.board_tiles[i].set_piece(piece)
             i += 1
-        assert i == 10
         
         for piece in self.get_computer_pieces():
             self.board_tiles[-i].set_piece(piece)
             i -= 1
-        assert i == 0
         
-        assert all(tile.is_empty() for tile in self.board_tiles[10 : -10])
-        assert all(not tile.is_empty() for tile in self.board_tiles[:10]+self.board_tiles[-10:])
-    
     """Returns a filter that iterates through all Pieces of the person"""
     def get_person_pieces(self):
         return filter(lambda p: p.is_person_piece(), self.pieces)
@@ -224,25 +197,12 @@ class Board():
             exploring_tile, pending_of_exploring = pending_of_exploring[0], pending_of_exploring[1:]
             pending_of_exploring.extend( [tile for tile in exploring_tile.get_neighbours().values() if tile.set_score_for_person(exploring_tile.get_score_for_person() - 1)] )
         
-        # Checks
-        distances = [tile.get_score_for_person() for tile in self.board_tiles]                               # Used at the end to check that the distances have not changed
-        assert distances[-1] == 16                                                                           # Checks the distance from top for the first tile
-        assert distances[0] == 0                                                                             # Checks the distance from top for the first tile
-        assert all(distance < 16 for distance in distances[:-1])                                             # Checks the distance from top for the rest of tiles
-        assert all(tile.score_for_computer == Tile.DEFAULT_SCORE for tile in self.board_tiles)               # Checks the distance to the bottom of all tiles
-        
         # Calculate scores for computer player
         pending_of_exploring = [self.board_tiles[0]]
         pending_of_exploring[0].set_score_for_computer(16)
         while any(pending_of_exploring):
             exploring_tile, pending_of_exploring = pending_of_exploring[0], pending_of_exploring[1:]
             pending_of_exploring.extend( [tile for tile in exploring_tile.get_neighbours().values() if tile.set_score_for_computer(exploring_tile.get_score_for_computer() - 1)] )
-
-        # Checks
-        assert [tile.get_score_for_person() for tile in self.board_tiles] == distances      # Checks that the distance from top is still the same
-        assert self.board_tiles[0].get_score_for_computer() == 16                           # Checks the tile at the bottom
-        assert self.board_tiles[-1].get_score_for_computer() == 0                           # Checks the tile at the bottom
-        assert all(tile.get_score_for_computer() < 16 for tile in self.board_tiles[1:-1])   # Check the rest of the tiles
 
     """Prints the board in the command line"""
     def print_board(self, numbered_tiles=None, characters="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ") -> None:
