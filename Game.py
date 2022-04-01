@@ -17,7 +17,7 @@ def get_person_move(board: Board) -> tuple[Tile, Tile]:
 
 def ask_person_for_piece(board: Board) -> Tile:
     tiles_with_movable_pieces: list[Tile] = list(filter(
-        lambda t: any(board.get_all_possible_tiles_to_move(t)), board.get_person_tiles()
+        lambda t: any(board.get_all_valid_moves(t)), board.get_person_tiles()
     ))
     board.print_board(tiles_with_movable_pieces, "".join(CHARACTERS))
 
@@ -33,7 +33,7 @@ def ask_person_for_tile_destination(board: Board, tile_origin: Tile) -> Tile:
     assert isinstance(tile_origin, Tile)
     assert tile_origin.get_piece().is_person_piece()
 
-    available_tile_destinations: list[Tile] = [tile for tile in board.get_all_possible_tiles_to_move(tile_origin)]
+    available_tile_destinations: list[Tile] = [tile for tile in board.get_all_valid_moves(tile_origin)]
 
     board.print_board(available_tile_destinations, CHARACTERS_NO_ZERO)
 
@@ -53,7 +53,7 @@ def minimax(board: Board, depth: int, minimizing: bool = True) -> tuple[int, Til
     if minimizing:
         min_points, better_origin, better_destination = float('inf'), None, None
         for tile_origin in board.get_computer_tiles():
-            for tile_destination in board.get_all_possible_tiles_to_move(tile_origin):
+            for tile_destination in board.get_all_valid_moves(tile_origin):
                 board.move_piece_to_tile(tile_origin, tile_destination)
                 res_points, _1, _2 = minimax(board, depth-1, not minimizing)
                 board.move_piece_to_tile(tile_destination, tile_origin)
@@ -65,7 +65,7 @@ def minimax(board: Board, depth: int, minimizing: bool = True) -> tuple[int, Til
     else:
         max_points, better_origin, better_destination = float('-inf'), None, None
         for tile_origin in board.get_person_tiles():
-            for tile_destination in board.get_all_possible_tiles_to_move(tile_origin):
+            for tile_destination in board.get_all_valid_moves(tile_origin):
                 board.move_piece_to_tile(tile_origin, tile_destination)
                 res_points, _1, _2 = minimax(board, depth-1, not minimizing)
                 board.move_piece_to_tile(tile_destination, tile_origin)

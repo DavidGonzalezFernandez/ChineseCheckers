@@ -182,6 +182,22 @@ class Board():
                                     already_returned.add(move)
                                 else:
                                     assert False, "It is neccessary"
+    
+    def get_top_triangle_tiles(self):
+        return self.board_row_tiles[0] + self.board_row_tiles[1] + self.board_row_tiles[2] + self.board_row_tiles[3]
+
+    def get_bottom_triangle_tiles(self):
+        return self.board_row_tiles[-1] + self.board_row_tiles[-2] + self.board_row_tiles[-3] + self.board_row_tiles[-4]
+    
+    def get_all_valid_moves(self, tile_origin: Tile):
+        for move in self.get_all_possible_tiles_to_move(tile_origin):
+            if tile_origin.get_piece().is_computer_piece()  and  tile_origin in self.get_top_triangle_tiles()  and   move not in self.get_top_triangle_tiles():
+                continue
+            elif tile_origin.get_piece().is_person_piece()  and  tile_origin in self.get_bottom_triangle_tiles()  and  move not in self.get_bottom_triangle_tiles():
+                continue
+            else:
+                yield move
+
                                     
     """Moves the piece in the arguments to the tile in the paramenters. If the movement is not possible it does nothing returns False"""
     def move_piece_to_tile(self, tile_origin: Tile, destination_tile: Tile) -> bool:
