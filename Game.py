@@ -13,6 +13,8 @@ def ask_person_for_piece(board: Board, is_player1: bool) -> Tile:
 
     while True:
         n = input(f"Select a piece ({CHARACTERS[0]} - {CHARACTERS[len(tiles_with_movable_pieces)-1]})").strip().upper()
+        if len(n) != 1:
+            continue
         if n in CHARACTERS[ : len(tiles_with_movable_pieces)]:
             selected_tile = tiles_with_movable_pieces[CHARACTERS.index(n)]
             return selected_tile
@@ -27,6 +29,8 @@ def ask_person_for_tile_destination(board: Board, tile_origin: Tile) -> Tile:
 
     while True:
         n = input(f"Select a tile to move to ({CHARACTERS[0]} - {CHARACTERS[len(available_tile_destinations)-1]})").strip().upper()
+        if len(n) != 1:
+            continue
         if n in CHARACTERS[ : 1+len(available_tile_destinations)]:
             destination_tile = available_tile_destinations[ CHARACTERS.index(n) ]
             assert destination_tile is not None
@@ -34,20 +38,20 @@ def ask_person_for_tile_destination(board: Board, tile_origin: Tile) -> Tile:
             assert destination_tile.is_empty()
             return destination_tile
 
-def minimax_pruning(board: Board, depth: int, player1_turn: bool, maximizing: bool = True, alpha: int = -1_000_000_000, beta: int = 1_000_000_000) -> tuple[int, Tile, Tile]:
+def minimax_pruning(board: Board, depth: int, is_player1_turn: bool, maximizing: bool = True, alpha: int = -1_000_000_000, beta: int = 1_000_000_000) -> tuple[int, Tile, Tile]:
     if depth==0:
-        return board.get_score(player1_turn), None, None
+        return board.get_score(is_player1_turn), None, None
 
     if board.has_game_ended():
         # We add the depth as an incentive to choose the branch that is shorter
-        return board.get_score(player1_turn)+depth, None, None
+        return board.get_score(is_player1_turn)+depth, None, None
     
     if maximizing:
         max_points, better_origin, better_destination = float('-inf'), None, None
-        for tile_origin in board.get_player1_tiles() if player1_turn else board.get_player2_tiles():
+        for tile_origin in board.get_player1_tiles() if is_player1_turn else board.get_player2_tiles():
             for tile_destination in board.get_all_valid_moves(tile_origin):
                 board.move_piece_to_tile(tile_origin, tile_destination)
-                res_points, _1, _2 = minimax_pruning(board, depth-1, player1_turn, not maximizing, alpha, beta)
+                res_points, _1, _2 = minimax_pruning(board, depth-1, is_player1_turn, not maximizing, alpha, beta)
                 board.move_piece_to_tile(tile_destination, tile_origin)
 
                 if res_points > max_points:
@@ -63,10 +67,10 @@ def minimax_pruning(board: Board, depth: int, player1_turn: bool, maximizing: bo
     
     else:
         min_points, better_origin, better_destination = float('inf'), None, None
-        for tile_origin in board.get_player2_tiles() if player1_turn else board.get_player1_tiles():
+        for tile_origin in board.get_player2_tiles() if is_player1_turn else board.get_player1_tiles():
             for tile_destination in board.get_all_valid_moves(tile_origin):
                 board.move_piece_to_tile(tile_origin, tile_destination)
-                res_points, _1, _2 = minimax_pruning(board, depth-1, player1_turn, not maximizing, alpha, beta)
+                res_points, _1, _2 = minimax_pruning(board, depth-1, is_player1_turn, not maximizing, alpha, beta)
                 board.move_piece_to_tile(tile_destination, tile_origin)
 
                 if res_points < min_points:
@@ -139,7 +143,7 @@ if __name__ == "__main__":
 
     current_player_index = choice([0, 1])
     print(f"{players[current_player_index].get_name()} starts\n")
-    
+
     while not board.has_game_ended():
         tile_origin, tile_destination = players[current_player_index].get_move(board)
         if current_player_index == 0:

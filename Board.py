@@ -110,17 +110,17 @@ class Board():
                 return 1_000_000
             elif self.has_player2_won():
                 return -1_000_000
-            return sum(t.get_score() for t in self.get_player1_tiles()) - sum(t.get_score() for t in self.get_player2_tiles())
+            # Evaluation function 1 for player1
+            return sum(t.get_score1() for t in self.get_player1_tiles()) - sum(t.get_score1() for t in self.get_player2_tiles())
 
         else:
             if self.has_player1_won():
                 return -1_000_000
             elif self.has_player2_won():
                 return 1_000_000
-            return sum(t.get_score() for t in self.get_player2_tiles()) - sum(t.get_score() for t in self.get_player1_tiles())
+            # Evaluation function 2 for player 2
+            return sum(t.get_score2() for t in self.get_player2_tiles()) - sum(t.get_score2() for t in self.get_player1_tiles())
 
-        
-    
     """Returns all the tiles that contain pieces from the player2"""
     def get_player2_tiles(self):
         return filter(lambda t: not t.is_empty()  and  t.get_piece().is_player2_piece(), self.board_tiles)
@@ -203,23 +203,47 @@ class Board():
     def calculate_tiles_scores(self) -> None:
         pending_of_exploring: list[Tile]
 
+        # Evaluation function 1
         # Calculate scores for player1 player
         pending_of_exploring = [self.board_tiles[-1]]
-        pending_of_exploring[0].set_score_for_player1(16)
+        pending_of_exploring[0].set_score1_for_player1(16)
         while any(pending_of_exploring):
             exploring_tile, pending_of_exploring = pending_of_exploring[0], pending_of_exploring[1:]
-            pending_of_exploring.extend( [tile for tile in exploring_tile.get_neighbours().values() if tile.set_score_for_player1(exploring_tile.get_score_for_player1() - 1)] )
+            pending_of_exploring.extend( [tile for tile in exploring_tile.get_neighbours().values() if tile.set_score1_for_player1(exploring_tile.get_score1_for_player1() - 1)] )
         for tile in self.get_bottom_triangle_tiles():
-            assert tile.set_score_for_player1(5 + tile.get_score_for_player1())
+            assert tile.set_score1_for_player1(5 + tile.get_score1_for_player1())
         
         # Calculate scores for player2 player
         pending_of_exploring = [self.board_tiles[0]]
-        pending_of_exploring[0].set_score_for_player2(16)
+        pending_of_exploring[0].set_score1_for_player2(16)
         while any(pending_of_exploring):
             exploring_tile, pending_of_exploring = pending_of_exploring[0], pending_of_exploring[1:]
-            pending_of_exploring.extend( [tile for tile in exploring_tile.get_neighbours().values() if tile.set_score_for_player2(exploring_tile.get_score_for_player2() - 1)] )
+            pending_of_exploring.extend( [tile for tile in exploring_tile.get_neighbours().values() if tile.set_score1_for_player2(exploring_tile.get_score1_for_player2() - 1)] )
         for tile in self.get_top_triangle_tiles():
-            assert tile.set_score_for_player2(5 + tile.get_score_for_player2())
+            assert tile.set_score1_for_player2(5 + tile.get_score1_for_player2())
+
+        # Evaluation function 2
+        # Player 1
+        for i in range(len(self.board_row_tiles)):
+            row = self.board_row_tiles[i]
+            for j in range(len(row)):
+                if len(row) % 2 == 0:
+                    row[j].set_score2_for_player1(1*10 - abs(int((len(row)-1)/2 - j)))
+                else:
+                    row[j].set_score2_for_player1(i*10 - abs(len(row)//2 - j))
+        for tile in self.get_bottom_triangle_tiles():
+            tile.set_score2_for_player1(tile.get_score2_for_player1() + 50)
+        # Player2
+        for i in range(len(self.board_row_tiles)):
+            row = self.board_row_tiles[i]
+            for j in range(len(row)):
+                if len(row) % 2 == 0:
+                    row[j].set_score2_for_player2((16-i)*10 - abs(int((len(row)-1)/2 - j)))
+                else:
+                    row[j].set_score2_for_player2((16-i)*10 - abs(len(row)//2 - j))
+        for tile in self.get_top_triangle_tiles():
+            tile.set_score2_for_player2(tile.get_score2_for_player2() + 50)
+
 
     """Prints the board in the command line"""
     def print_board(self, numbered_tiles=None, characters="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ") -> None:
