@@ -183,6 +183,12 @@ class Board():
                 continue
             else:
                 yield move
+    
+    """Generates all valid moves that satisfy the heuristic function"""
+    def get_all_valid_logical_moves(self, tile_origin: Tile, heuristic_function):
+        for tile_destination in self.get_all_valid_moves(tile_origin):
+            if heuristic_function(tile_origin, tile_destination):
+                yield tile_destination
 
                                     
     """Moves the piece in the arguments to the tile in the paramenters. If the movement is not possible it does nothing returns False"""
