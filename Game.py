@@ -24,13 +24,8 @@ def create_players():
     return player1, player2
 
 def get_heuristic(b: Board, turn1: bool):
-    def h1(tile_origin: Tile, tile_destination: Tile) -> bool:
-        if turn1:
-            return board.board_tiles.index(tile_destination) > board.board_tiles.index(tile_origin)
-        else:
-            return board.board_tiles.index(tile_destination) < board.board_tiles.index(tile_origin)
-
-    return h1
+    return lambda tile_origin, tile_destination: turn1 ^ board.board_tiles.index(tile_destination) < board.board_tiles.index(tile_origin)
+    
 # -----------------------------------------------------------------------------------
 
 if __name__ == "__main__":
