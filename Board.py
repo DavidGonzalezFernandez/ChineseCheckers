@@ -10,7 +10,7 @@ class Board():
 
         self.add_neighbouring_tiles()
         self.place_pieces_in_board()
-        self.calculate_distances()
+        self.calculate_tiles_scores()
     
     """Creates and returns a lists of Tiles that represent each row in the board"""
     def generate_board_rows(self) -> list[list[Tile]]:
@@ -200,7 +200,7 @@ class Board():
         return True
 
     """Calculates for all tiles in the board the distance from that tile to tiles in the top and bottom edges"""
-    def calculate_distances(self) -> None:
+    def calculate_tiles_scores(self) -> None:
         pending_of_exploring: list[Tile]
 
         # Calculate scores for player1 player
@@ -209,6 +209,8 @@ class Board():
         while any(pending_of_exploring):
             exploring_tile, pending_of_exploring = pending_of_exploring[0], pending_of_exploring[1:]
             pending_of_exploring.extend( [tile for tile in exploring_tile.get_neighbours().values() if tile.set_score_for_player1(exploring_tile.get_score_for_player1() - 1)] )
+        for tile in self.get_bottom_triangle_tiles():
+            assert tile.set_score_for_player1(5 + tile.get_score_for_player1())
         
         # Calculate scores for player2 player
         pending_of_exploring = [self.board_tiles[0]]
@@ -216,6 +218,8 @@ class Board():
         while any(pending_of_exploring):
             exploring_tile, pending_of_exploring = pending_of_exploring[0], pending_of_exploring[1:]
             pending_of_exploring.extend( [tile for tile in exploring_tile.get_neighbours().values() if tile.set_score_for_player2(exploring_tile.get_score_for_player2() - 1)] )
+        for tile in self.get_top_triangle_tiles():
+            assert tile.set_score_for_player2(5 + tile.get_score_for_player2())
 
     """Prints the board in the command line"""
     def print_board(self, numbered_tiles=None, characters="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ") -> None:
