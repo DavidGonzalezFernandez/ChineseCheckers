@@ -18,9 +18,6 @@ def ask_person_for_piece(board: Board, is_player1: bool) -> Tile:
             return selected_tile
 
 def ask_person_for_tile_destination(board: Board, tile_origin: Tile) -> Tile:
-    assert board is not None
-    assert isinstance(tile_origin, Tile)
-
     available_tile_destinations: list[Tile] = [tile for tile in board.get_all_valid_moves(tile_origin)]
 
     board.print_board(available_tile_destinations, CHARACTERS)
@@ -31,9 +28,6 @@ def ask_person_for_tile_destination(board: Board, tile_origin: Tile) -> Tile:
             continue
         if n in CHARACTERS[ : 1+len(available_tile_destinations)]:
             destination_tile = available_tile_destinations[ CHARACTERS.index(n) ]
-            assert destination_tile is not None
-            assert isinstance(destination_tile, Tile)
-            assert destination_tile.is_empty()
             return destination_tile
 
 def minimax_pruning(board: Board, depth: int, is_player1_turn: bool, heuristic, maximizing: bool = True, alpha: int = -1_000_000_000, beta: int = 1_000_000_000) -> tuple[int, Tile, Tile]:

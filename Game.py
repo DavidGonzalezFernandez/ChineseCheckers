@@ -49,21 +49,11 @@ if __name__ == "__main__":
     while not board.has_game_ended():
         player = players[current_player_index]
         tile_origin, tile_destination = player.get_move(board, get_heuristic(board, player.is_player1()))
-        if current_player_index == 0:
-            assert player.is_player1()
-            assert tile_origin.get_piece().is_player1_piece()
-        else:
-            assert not player.is_player1()
-            assert tile_origin.get_piece().is_player2_piece()
-
-        assert tile_destination.is_empty()
         board.move_piece_to_tile(tile_origin, tile_destination)
         board.print_board()
         current_player_index = (current_player_index+1) % len(players)
     
     if board.has_player1_won():
-        assert not board.has_player2_won()
         print("Player1 has won")
     else:
-        assert board.has_player2_won()
         print("Player2 has won")

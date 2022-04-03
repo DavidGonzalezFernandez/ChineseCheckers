@@ -42,43 +42,27 @@ class Tile():
         self.score2_for_player2 = new_score
     
     def get_score1(self) -> int:
-        assert self.score1_for_player1 != Tile.DEFAULT_SCORE
-        assert self.score1_for_player2 != Tile.DEFAULT_SCORE
-        assert self.get_piece() is not None
-
         if self.get_piece().is_player2_piece():
             return self.get_score1_for_player2()
         else:
             return self.get_score1_for_player1()
         
     def get_score2(self) -> int:
-        assert self.score2_for_player1 != Tile.DEFAULT_SCORE
-        assert self.score2_for_player2 != Tile.DEFAULT_SCORE
-        assert self.get_piece() is not None
-
         if self.get_piece().is_player2_piece():
             return self.get_score2_for_player2()
         else:
             return self.get_score2_for_player1()
 
     def get_score1_for_player1(self) -> int:
-        assert self.score1_for_player1 != Tile.DEFAULT_SCORE
-        assert self.score1_for_player1 >= 0
         return self.score1_for_player1
 
     def get_score1_for_player2(self) -> int:
-        assert self.score1_for_player2 != Tile.DEFAULT_SCORE
-        assert self.score1_for_player2 >= 0
         return self.score1_for_player2
     
     def get_score2_for_player1(self) -> int:
-        assert self.score2_for_player1 != Tile.DEFAULT_SCORE
-        assert self.score2_for_player1 >= 0
         return self.score2_for_player1
 
     def get_score2_for_player2(self) -> int:
-        assert self.score2_for_player2 != Tile.DEFAULT_SCORE
-        assert self.score2_for_player2 >= 0
         return self.score2_for_player2
     
     def add_neighbour(self, direction: str, neighbour_tile) -> None:

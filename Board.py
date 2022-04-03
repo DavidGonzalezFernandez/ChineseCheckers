@@ -131,9 +131,6 @@ class Board():
     
     """Generator that outputs all the tiles where you can move to"""
     def get_all_possible_tiles_to_move(self, tile: Tile, only_jumps = False, already_jumped_from = None, already_returned = None):
-        assert tile is not None
-        assert 2 <= len(list(tile.get_neighbours().values())) <= 6
-
         # This only happens on the first call
         if already_jumped_from is None:
             already_jumped_from = set()
@@ -193,8 +190,6 @@ class Board():
                                     
     """Moves the piece in the arguments to the tile in the paramenters. If the movement is not possible it does nothing returns False"""
     def move_piece_to_tile(self, tile_origin: Tile, destination_tile: Tile) -> bool:
-        assert destination_tile is not None
-
         if not destination_tile.is_empty():
             # We cannot move here, do not do anythin
             return False
@@ -202,7 +197,6 @@ class Board():
         destination_tile.set_piece(tile_origin.get_piece())
         tile_origin.set_empty()
 
-        assert sum(1 for tile in self.board_tiles if not tile.is_empty()) == 20
         return True
 
     """Calculates for all tiles in the board the distance from that tile to tiles in the top and bottom edges"""
@@ -217,7 +211,7 @@ class Board():
             exploring_tile, pending_of_exploring = pending_of_exploring[0], pending_of_exploring[1:]
             pending_of_exploring.extend( [tile for tile in exploring_tile.get_neighbours().values() if tile.set_score1_for_player1(exploring_tile.get_score1_for_player1() - 1)] )
         for tile in self.get_bottom_triangle_tiles():
-            assert tile.set_score1_for_player1(5 + tile.get_score1_for_player1())
+            tile.set_score1_for_player1(5 + tile.get_score1_for_player1())
         
         # Calculate scores for player2 player
         pending_of_exploring = [self.board_tiles[0]]
@@ -226,7 +220,7 @@ class Board():
             exploring_tile, pending_of_exploring = pending_of_exploring[0], pending_of_exploring[1:]
             pending_of_exploring.extend( [tile for tile in exploring_tile.get_neighbours().values() if tile.set_score1_for_player2(exploring_tile.get_score1_for_player2() - 1)] )
         for tile in self.get_top_triangle_tiles():
-            assert tile.set_score1_for_player2(5 + tile.get_score1_for_player2())
+            tile.set_score1_for_player2(5 + tile.get_score1_for_player2())
 
         # Evaluation function 2
         # Player 1
@@ -268,7 +262,6 @@ class Board():
                 if tile in numbered_tiles:
                     print(f"{characters[numbered_tiles.index(tile)]}", end=" ")
                 else:
-                    assert tile is not None
                     print(f"{str(tile)}", end=" ")
             print("")   # New line
         print("\n")
@@ -281,8 +274,4 @@ class Board():
     
     """Returns the tile that contain the piece in the argument"""
     def get_tile(self, piece: Piece):
-        assert piece is not None
-        assert isinstance(piece, Piece)
-        assert piece in self.pieces
-        
         return next(tile for tile in self.board_tiles if tile.get_piece() is piece)
