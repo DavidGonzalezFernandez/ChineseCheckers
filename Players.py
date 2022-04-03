@@ -36,8 +36,7 @@ def ask_person_for_tile_destination(board: Board, tile_origin: Tile) -> Tile:
             assert destination_tile.is_empty()
             return destination_tile
 
-def minimax_pruning(heuristic, c, board: Board, depth: int, is_player1_turn: bool, maximizing: bool = True, alpha: int = -1_000_000_000, beta: int = 1_000_000_000) -> tuple[int, Tile, Tile]:
-    c[0] += 1
+def minimax_pruning(board: Board, depth: int, is_player1_turn: bool, heuristic, maximizing: bool = True, alpha: int = -1_000_000_000, beta: int = 1_000_000_000) -> tuple[int, Tile, Tile]:
     if depth==0:
         return board.get_score(is_player1_turn), None, None
 
@@ -50,7 +49,7 @@ def minimax_pruning(heuristic, c, board: Board, depth: int, is_player1_turn: boo
         for tile_origin in board.get_player1_tiles() if is_player1_turn else board.get_player2_tiles():
             for tile_destination in board.get_all_valid_logical_moves(tile_origin, heuristic):
                 board.move_piece_to_tile(tile_origin, tile_destination)
-                res_points, _1, _2 = minimax_pruning(heuristic, c, board, depth-1, is_player1_turn, not maximizing, alpha, beta)
+                res_points, _1, _2 = minimax_pruning(board, depth-1, is_player1_turn, heuristic, not maximizing, alpha, beta)
                 board.move_piece_to_tile(tile_destination, tile_origin)
 
                 if res_points > max_points:
@@ -69,7 +68,7 @@ def minimax_pruning(heuristic, c, board: Board, depth: int, is_player1_turn: boo
         for tile_origin in board.get_player2_tiles() if is_player1_turn else board.get_player1_tiles():
             for tile_destination in board.get_all_valid_logical_moves(tile_origin, heuristic):
                 board.move_piece_to_tile(tile_origin, tile_destination)
-                res_points, _1, _2 = minimax_pruning(heuristic, c, board, depth-1, is_player1_turn, not maximizing, alpha, beta)
+                res_points, _1, _2 = minimax_pruning(board, depth-1, is_player1_turn, heuristic, not maximizing, alpha, beta)
                 board.move_piece_to_tile(tile_destination, tile_origin)
 
                 if res_points < min_points:
@@ -98,14 +97,7 @@ class Player_Computer(Player):
         super().__init__(name)
 
     def get_move(self, board: Board, heuristic) -> tuple[Tile, Tile]:
-        c = [0]
-        from time import time
-        t1 = time()
-        _, tile_origin, tile_destination = minimax_pruning(heuristic, c, board, 3, self.is_player1())
-        t2 = time()
-        print(t2 - t1)
-        print(c[0])
-
+        _, tile_origin, tile_destination = minimax_pruning(board, 3, self.is_player1(), heuristic)
         return (tile_origin, tile_destination)
 
 class Player_Person(Player):
