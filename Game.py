@@ -1,10 +1,13 @@
-from Board import Board
 from random import choice
-from Tile import Tile
+from Board import Board
 from Players import Player_Computer, Player_Person
 
-def create_players():
+"""Asks the user if the players are people, or instead the computer is going to play.
+Creates the players and returns them"""
+def create_players() -> tuple[Player_Computer|Player_Person, Player_Computer|Player_Person]:
     player1, player2 = None, None
+
+    # Player 1
     while player1 is None:
         res = input("Is player1 a person? (y/n): ").strip().lower()
         if res == "y"  or  res == "yes":
@@ -14,6 +17,7 @@ def create_players():
     
     print()
 
+    # Player 2
     while player2 is None:
         res = input("Is player2 a person? (y/n): ").strip().lower()
         if res == "y"  or  res == "yes":
@@ -23,9 +27,16 @@ def create_players():
 
     return player1, player2
 
+"""The implemented heuristic for the game"""
 def get_heuristic(b: Board, turn1: bool):
-    return lambda tile_origin, tile_destination: turn1 ^ board.board_tiles.index(tile_destination) < board.board_tiles.index(tile_origin)
-    
+    def h1(tile_origin, tile_destination) -> bool:
+        if turn1:
+            return board.get_row_index(tile_destination) >= board.get_row_index(tile_origin)
+        else:
+            return board.get_row_index(tile_destination) <= board.get_row_index(tile_origin)
+
+    return h1
+
 # -----------------------------------------------------------------------------------
 
 if __name__ == "__main__":

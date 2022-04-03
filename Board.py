@@ -273,6 +273,12 @@ class Board():
             print("")   # New line
         print("\n")
     
+    """Returns if both tiles are in the same row"""
+    def get_row_index(self, tile: Tile) -> int:
+        for i in range(len(self.board_row_tiles)):
+            if tile in self.board_row_tiles[i]:
+                return i
+    
     """Returns the tile that contain the piece in the argument"""
     def get_tile(self, piece: Piece):
         assert piece is not None
