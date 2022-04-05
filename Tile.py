@@ -41,18 +41,6 @@ class Tile():
     def set_score2_for_player2(self, new_score: int) -> bool:
         self.score2_for_player2 = new_score
     
-    def get_score1(self) -> int:
-        if self.get_piece().is_player2_piece():
-            return self.get_score1_for_player2()
-        else:
-            return self.get_score1_for_player1()
-        
-    def get_score2(self) -> int:
-        if self.get_piece().is_player2_piece():
-            return self.get_score2_for_player2()
-        else:
-            return self.get_score2_for_player1()
-
     def get_score1_for_player1(self) -> int:
         return self.score1_for_player1
 
@@ -64,6 +52,18 @@ class Tile():
 
     def get_score2_for_player2(self) -> int:
         return self.score2_for_player2
+
+    def get_score1(self) -> int:
+        if self.get_piece().is_player2_piece():
+            return self.get_score1_for_player2()
+        else:
+            return self.get_score1_for_player1()
+        
+    def get_score2(self) -> int:
+        if self.get_piece().is_player2_piece():
+            return self.get_score2_for_player2()
+        else:
+            return self.get_score2_for_player1()
     
     def add_neighbour(self, direction: str, neighbour_tile) -> None:
         self.neighbours[direction] = neighbour_tile

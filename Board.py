@@ -3,13 +3,22 @@ from Piece import Piece
 
 class Board():
     def __init__(self) -> None:
+        # Create the tiles, an arrange them in a list of lists
         self.board_row_tiles: list[list[Tile]] = self.generate_board_rows()
+
+        # Arrange the tiles in a single list
         self.board_tiles: list[Tile] = self.rows_to_board()
 
+        # Generate the pieces for both players
         self.pieces: list[Piece] = self.generate_pieces()
 
+        # Generate then links between all tiles
         self.add_neighbouring_tiles()
+
+        # Place the pieces of both users in the board
         self.place_pieces_in_board()
+
+        # Calculate scores for every tiles later used in evaluation function
         self.calculate_tiles_scores()
     
     """Creates and returns a lists of Tiles that represent each row in the board"""
@@ -30,8 +39,7 @@ class Board():
     """Creates 10 pieces for the player1 and another 10 pieces for the player2.
     Returns a single list with all 20 pieces"""
     def generate_pieces(self) -> list[Piece]:
-        pieces = [Piece(Piece.PLAYER1_COLOR) for _ in range(10)] + [Piece(Piece.PLAYER2_COLOR) for _ in range(10)]
-        return pieces
+        return [Piece(Piece.PLAYER1_COLOR) for _ in range(10)] + [Piece(Piece.PLAYER2_COLOR) for _ in range(10)]
     
     """Adds all the neighbours for each tile"""
     def add_neighbouring_tiles(self) -> None:
@@ -82,6 +90,14 @@ class Board():
         for piece in self.get_player2_pieces():
             self.board_tiles[-i].set_piece(piece)
             i -= 1
+
+    """Returns all the tiles that contain pieces from the player1"""
+    def get_player1_tiles(self):
+        return filter(lambda t: not t.is_empty()  and  t.get_piece().is_player1_piece(), self.board_tiles)
+
+    """Returns all the tiles that contain pieces from the player2"""
+    def get_player2_tiles(self):
+        return filter(lambda t: not t.is_empty()  and  t.get_piece().is_player2_piece(), self.board_tiles)
         
     """Returns a filter that iterates through all Pieces of the player1"""
     def get_player1_pieces(self):
@@ -91,14 +107,14 @@ class Board():
     def get_player2_pieces(self):
         return filter(lambda p: p.is_player2_piece(), self.pieces)
 
+    """Check if the player1 has won"""
+    def has_player1_won(self) -> bool:
+        return all(not tile.is_empty() for tile in self.get_bottom_triangle_tiles())  and  any(tile.get_piece().is_player1_piece() for tile in self.get_bottom_triangle_tiles())
+
     """Check if the player2 has won"""
     def has_player2_won(self) -> bool:
         return all(not tile.is_empty() for tile in self.get_top_triangle_tiles())  and  any(tile.get_piece().is_player2_piece() for tile in self.get_top_triangle_tiles())
 
-    """Check if the player1 has won"""
-    def has_player1_won(self) -> bool:
-        return all(not tile.is_empty() for tile in self.get_bottom_triangle_tiles())  and  any(tile.get_piece().is_player1_piece() for tile in self.get_bottom_triangle_tiles())
-    
     """Return True if (at least) one of the player has reached the end of the board"""
     def has_game_ended(self) -> bool:
         return self.has_player2_won() or self.has_player1_won()
@@ -120,14 +136,6 @@ class Board():
                 return 1_000_000
             # Evaluation function 2 for player 2
             return sum(t.get_score2() for t in self.get_player2_tiles()) - sum(t.get_score2() for t in self.get_player1_tiles())
-
-    """Returns all the tiles that contain pieces from the player2"""
-    def get_player2_tiles(self):
-        return filter(lambda t: not t.is_empty()  and  t.get_piece().is_player2_piece(), self.board_tiles)
-
-    """Returns all the tiles that contain pieces from the player1"""
-    def get_player1_tiles(self):
-        return filter(lambda t: not t.is_empty() and t.get_piece().is_player1_piece(), self.board_tiles)
     
     """Generator that outputs all the tiles where you can move to"""
     def get_all_possible_tiles_to_move(self, tile: Tile, only_jumps = False, already_jumped_from = None, already_returned = None):
@@ -244,9 +252,8 @@ class Board():
         for tile in self.get_top_triangle_tiles():
             tile.set_score2_for_player2(tile.get_score2_for_player2() + 50)
 
-
     """Prints the board in the command line"""
-    def print_board(self, numbered_tiles=None, characters="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ") -> None:
+    def print_board(self, numbered_tiles=None, characters="123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ") -> None:
         numbered_tiles = [] if numbered_tiles is None else list(numbered_tiles)
         
         # Calculate the lenth of the row(s) with the most tiles
