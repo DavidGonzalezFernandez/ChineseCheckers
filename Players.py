@@ -30,17 +30,17 @@ def ask_person_for_tile_destination(board: Board, tile_origin: Tile) -> Tile:
             destination_tile = available_tile_destinations[ CHARACTERS.index(n) ]
             return destination_tile
 
-def minimax_pruning(board: Board, depth: int, is_player1_turn: bool, heuristic, maximizing: bool = True, alpha: int = -1_000_000_000, beta: int = 1_000_000_000) -> tuple[int, Tile, Tile]:
+def minimax_pruning(board: Board, depth: int, is_player1_turn: bool, heuristic, use_eval_func_1, maximizing: bool = True, alpha: int = -1_000_000_000, beta: int = 1_000_000_000) -> tuple[int, Tile, Tile]:
     if depth==0 or board.has_game_ended():
         # We add the depth as an incentive to choose the branch that is shorter
-        return board.get_score(is_player1_turn)+depth, None, None
+        return board.get_score(is_player1_turn, use_eval_func_1)+depth, None, None
     
     if maximizing:
         max_points, better_origin, better_destination = float('-inf'), None, None
         for tile_origin in board.get_player1_tiles() if is_player1_turn else board.get_player2_tiles():
             for tile_destination in board.get_all_valid_logical_moves(tile_origin, heuristic):
                 board.move_piece_to_tile(tile_origin, tile_destination)
-                res_points, _1, _2 = minimax_pruning(board, depth-1, is_player1_turn, heuristic, not maximizing, alpha, beta)
+                res_points, _1, _2 = minimax_pruning(board, depth-1, is_player1_turn, heuristic, use_eval_func_1, not maximizing, alpha, beta)
                 board.move_piece_to_tile(tile_destination, tile_origin)
 
                 if res_points > max_points:
@@ -59,7 +59,7 @@ def minimax_pruning(board: Board, depth: int, is_player1_turn: bool, heuristic, 
         for tile_origin in board.get_player2_tiles() if is_player1_turn else board.get_player1_tiles():
             for tile_destination in board.get_all_valid_logical_moves(tile_origin, heuristic):
                 board.move_piece_to_tile(tile_origin, tile_destination)
-                res_points, _1, _2 = minimax_pruning(board, depth-1, is_player1_turn, heuristic, not maximizing, alpha, beta)
+                res_points, _1, _2 = minimax_pruning(board, depth-1, is_player1_turn, heuristic, use_eval_func_1, not maximizing, alpha, beta)
                 board.move_piece_to_tile(tile_destination, tile_origin)
 
                 if res_points < min_points:
@@ -74,28 +74,43 @@ def minimax_pruning(board: Board, depth: int, is_player1_turn: bool, heuristic, 
 
 class Player():
     def __init__(self, name: str) -> None:
-        self.name = name
+        self.name: str = name
     
-    def get_name(self):
+    def get_name(self) -> str:
         return self.name
     
-    def is_player1(self):
+    def is_player1(self) -> bool:
         return "1" in self.get_name()
 
 
 class Player_Computer(Player):
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, eval_func_int: int, depth: int) -> None:
         super().__init__(name)
+        self.eval_func: int = eval_func_int
+        self.heuristic = lambda x, y: True
+        self.depth = depth
+    
+    def set_heuristic(self, f):
+        self.heuristic = f
 
-    def get_move(self, board: Board, heuristic) -> tuple[Tile, Tile]:
-        _, tile_origin, tile_destination = minimax_pruning(board, 3, self.is_player1(), heuristic)
+    def get_move(self, board: Board) -> tuple[Tile, Tile]:
+        _, tile_origin, tile_destination = minimax_pruning(board, self.depth, self.is_player1(), self.get_heuristic(), self.uses_eval_func_1())
         return (tile_origin, tile_destination)
+
+    def get_heuristic(self):
+        return self.heuristic
+    
+    def get_eval_func(self) -> int:
+        return self.eval_func
+    
+    def uses_eval_func_1(self) -> bool:
+        return self.eval_func == 1
 
 class Player_Person(Player):
     def __init__(self, name: str) -> None:
         super().__init__(name)
 
-    def get_move(self, board: Board, heuristic) -> tuple[Tile, Tile]:
+    def get_move(self, board: Board) -> tuple[Tile, Tile]:
         # Select piece from all it pieces available
         tile_origin: Tile = ask_person_for_piece(board, "1" in self.get_name())
 

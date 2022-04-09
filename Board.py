@@ -120,22 +120,22 @@ class Board():
         return self.has_player2_won() or self.has_player1_won()
 
     """Return the score for the current state of the board"""
-    def get_score(self, player1_turn: bool) -> int:
-        if player1_turn:
-            if self.has_player1_won():
-                return 1_000_000
-            elif self.has_player2_won():
-                return -1_000_000
-            # Evaluation function 1 for player1
-            return sum(t.get_score1() for t in self.get_player1_tiles()) - sum(t.get_score1() for t in self.get_player2_tiles())
-
+    def get_score(self, is_player1_turn: bool, use_eval_func_1: bool) -> int:
+        if (is_player1_turn  and  self.has_player1_won())  or  (not is_player1_turn  and  self.has_player2_won()):
+            return 1_000_000
+        if (is_player1_turn  and  self.has_player2_won())  or  (not is_player1_turn  and  self.has_player1_won()):
+            return -1_000_000
+         
+        if use_eval_func_1:
+            # Evaluation function 1
+            score_player_1 = sum(t.get_score1() for t in self.get_player1_tiles()) * (1 if is_player1_turn else -1)
+            score_player_2 = sum(t.get_score1() for t in self.get_player2_tiles()) * (-1 if is_player1_turn else 1)
+            return score_player_1 + score_player_2
         else:
-            if self.has_player1_won():
-                return -1_000_000
-            elif self.has_player2_won():
-                return 1_000_000
-            # Evaluation function 2 for player 2
-            return sum(t.get_score2() for t in self.get_player2_tiles()) - sum(t.get_score2() for t in self.get_player1_tiles())
+            # Evaluation function 2
+            score_player_1 = sum(t.get_score2() for t in self.get_player1_tiles()) * (1 if is_player1_turn else -1)
+            score_player_2 = sum(t.get_score2() for t in self.get_player2_tiles()) * (-1 if is_player1_turn else 1)
+            return score_player_1 + score_player_2
     
     """Generator that outputs all the tiles where you can move to"""
     def get_all_possible_tiles_to_move(self, tile: Tile, only_jumps = False, already_jumped_from = None, already_returned = None):
