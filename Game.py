@@ -23,7 +23,7 @@ def create_players() -> tuple[Player_Computer|Player_Person, Player_Computer|Pla
         if res == "y"  or  res == "yes":
             player2 = Player_Person("Player2")
         elif res == "n"  or  res == "no":
-            player2 = Player_Computer("player2")
+            player2 = Player_Computer("Player2")
 
     return player1, player2
 

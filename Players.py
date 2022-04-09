@@ -31,10 +31,7 @@ def ask_person_for_tile_destination(board: Board, tile_origin: Tile) -> Tile:
             return destination_tile
 
 def minimax_pruning(board: Board, depth: int, is_player1_turn: bool, heuristic, maximizing: bool = True, alpha: int = -1_000_000_000, beta: int = 1_000_000_000) -> tuple[int, Tile, Tile]:
-    if depth==0:
-        return board.get_score(is_player1_turn), None, None
-
-    if board.has_game_ended():
+    if depth==0 or board.has_game_ended():
         # We add the depth as an incentive to choose the branch that is shorter
         return board.get_score(is_player1_turn)+depth, None, None
     
