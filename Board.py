@@ -107,13 +107,31 @@ class Board():
     def get_player2_pieces(self):
         return filter(lambda p: p.is_player2_piece(), self.pieces)
 
+    """Check if triangle destination for player1 is filled with player1 Tiles"""
+    def has_player1_reached_destination(self) -> bool:
+        return all(not tile.is_empty() for tile in self.get_bottom_triangle_tiles())  and  any(tile.get_piece().is_player1_piece() for tile in self.get_bottom_triangle_tiles())
+
+    """Check if triangle destination for player2 is filled with player2 Tiles"""
+    def has_player2_reached_destination(self) -> bool:
+        return all(not tile.is_empty() for tile in self.get_top_triangle_tiles())  and  any(tile.get_piece().is_player2_piece() for tile in self.get_top_triangle_tiles())
+
+    """Check if player1 can move"""
+    def can_player1_move(self) -> bool:
+        return any(filter(lambda t: any(self.get_all_valid_moves(t)), self.get_player1_tiles()))
+
+    """Check if player2 can move"""
+    def can_player2_move(self) -> bool:
+        return any(filter(lambda t: any(self.get_all_valid_moves(t)), self.get_player2_tiles()))
+
     """Check if the player1 has won"""
     def has_player1_won(self) -> bool:
-        return all(not tile.is_empty() for tile in self.get_bottom_triangle_tiles())  and  any(tile.get_piece().is_player1_piece() for tile in self.get_bottom_triangle_tiles())
+        # Has won if has reached destination 
+        return self.has_player1_reached_destination()
 
     """Check if the player2 has won"""
     def has_player2_won(self) -> bool:
-        return all(not tile.is_empty() for tile in self.get_top_triangle_tiles())  and  any(tile.get_piece().is_player2_piece() for tile in self.get_top_triangle_tiles())
+        # Has won if has reached destination
+        return self.has_player2_reached_destination()
 
     """Return True if (at least) one of the player has reached the end of the board"""
     def has_game_ended(self) -> bool:
@@ -254,24 +272,31 @@ class Board():
 
     """Prints the board in the command line"""
     def print_board(self, numbered_tiles=None, characters="123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ") -> None:
+        print(self.to_string(numbered_tiles, characters))
+
+    def to_string(self, numbered_tiles=None, characters="123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ") -> str:
+        res = ""
         numbered_tiles = [] if numbered_tiles is None else list(numbered_tiles)
         
         # Calculate the lenth of the row(s) with the most tiles
         max_length: int = max( (len(row) for row in self.board_row_tiles) )
 
-        print("CURRENT BOARD:\n")
+        res += "CURRENT BOARD:\n"
         for row in self.board_row_tiles:
             # Print the spaces before the row
-            print(" "*(max_length-len(row)), end="")
+            res += " "*(max_length-len(row))
             tile: Tile
             for tile in row:
                 # Print each tile
                 if tile in numbered_tiles:
-                    print(f"{characters[numbered_tiles.index(tile)]}", end=" ")
+                    res += f"{characters[numbered_tiles.index(tile)]} "
                 else:
-                    print(f"{str(tile)}", end=" ")
-            print("")   # New line
-        print("\n")
+                    res += f"{str(tile)} "
+            res += "\n"
+        res += "\n"
+
+        return res
+
     
     """Returns if both tiles are in the same row"""
     def get_row_index(self, tile: Tile) -> int:
