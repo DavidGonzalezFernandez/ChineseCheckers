@@ -26,7 +26,7 @@ def ask_person_for_tile_destination(board: Board, tile_origin: Tile) -> Tile:
         n = input(f"Select a tile to move to ({CHARACTERS[0]} - {CHARACTERS[len(available_tile_destinations)-1]})").strip().upper()
         if len(n) != 1:
             continue
-        if n in CHARACTERS[ : 1+len(available_tile_destinations)]:
+        if n in CHARACTERS[ : len(available_tile_destinations)]:
             destination_tile = available_tile_destinations[ CHARACTERS.index(n) ]
             return destination_tile
 
@@ -84,10 +84,11 @@ class Player():
 
 
 class Player_Computer(Player):
+    DEFAULT_HEURISTIC = lambda x, y: True
     def __init__(self, name: str, eval_func_int: int, depth: int) -> None:
         super().__init__(name)
         self.eval_func: int = eval_func_int
-        self.heuristic = lambda x, y: True
+        self.heuristic = Player_Computer.DEFAULT_HEURISTIC
         self.depth = depth
     
     def set_heuristic(self, f):
